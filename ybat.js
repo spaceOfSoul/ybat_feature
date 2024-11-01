@@ -28,7 +28,7 @@
     let images = {}
     let classes = {}
     let bboxes = {}
-
+    
     const extensions = ["jpg", "jpeg", "png", "JPG", "JPEG", "PNG"]
 
     let currentImage = null
@@ -1043,6 +1043,45 @@
                     saveAs(blob, "bboxes_yolo.zip")
                 })
         })
+
+        document.addEventListener("keydown", function(event) {
+            if (event.ctrlKey && event.key === "s") {
+                event.preventDefault();
+
+                const zip = new JSZip()
+
+                for (let imageName in bboxes) {
+                    const image = images[imageName]
+
+                    const name = imageName.split(".")
+
+                    name[name.length - 1] = "txt"
+
+                    const result = []
+
+                    for (let className in bboxes[imageName]) {
+                        for (let i = 0; i < bboxes[imageName][className].length; i++) {
+                            const bbox = bboxes[imageName][className][i]
+
+                            // Prepare data for yolo format
+                            const x = (bbox.x + bbox.width / 2) / image.width
+                            const y = (bbox.y + bbox.height / 2) / image.height
+                            const width = bbox.width / image.width
+                            const height = bbox.height / image.height
+
+                            result.push(`${classes[className]} ${x} ${y} ${width} ${height}`)
+                        }
+                    }
+
+                    zip.file(name.join("."), result.join("\n"))
+                }
+
+            zip.generateAsync({type: "blob"})
+                .then((blob) => {
+                    saveAs(blob, "bboxes_yolo.zip")
+                })
+            }
+        });
     }
 
     const listenBboxVocSave = () => {
@@ -1206,7 +1245,7 @@
                 event.preventDefault()
             }
 
-            if (key === 37) {
+            if (key === 37 || key === 65) { // left arrow
                 if (imageList.length > 1) {
                     imageList.options[imageListIndex].selected = false
 
@@ -1227,7 +1266,7 @@
                 event.preventDefault()
             }
 
-            if (key === 39) {
+            if (key === 39 || key === 68) { // right
                 if (imageList.length > 1) {
                     imageList.options[imageListIndex].selected = false
 
@@ -1248,7 +1287,7 @@
                 event.preventDefault()
             }
 
-            if (key === 38) {
+            if (key === 38 || key === 87) { // up
                 if (classList.length > 1) {
                     classList.options[classListIndex].selected = false
 
@@ -1267,7 +1306,7 @@
                 event.preventDefault()
             }
 
-            if (key === 40) {
+            if (key === 40 || key === 83) { // down
                 if (classList.length > 1) {
                     classList.options[classListIndex].selected = false
 
